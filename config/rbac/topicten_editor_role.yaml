@@ -1,0 +1,27 @@
+# permissions for end users to edit topictens.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: handson-topic10-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: topicten-editor-role
+rules:
+- apiGroups:
+  - app.lyc-handson-aws.com
+  resources:
+  - topictens
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - app.lyc-handson-aws.com
+  resources:
+  - topictens/status
+  verbs:
+  - get

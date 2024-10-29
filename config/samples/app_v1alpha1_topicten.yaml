@@ -1,0 +1,10 @@
+apiVersion: app.lyc-handson-aws.com/v1alpha1
+kind: TopicTen
+metadata:
+  labels:
+    app.kubernetes.io/name: handson-topic10-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: topicten-sample
+spec:
+  # TODO(user): Add fields here
+  
