@@ -28,13 +28,22 @@ type TopicTenSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// +kubebuilder:validation:Minimum=5
-	// +kubebuilder:validation:Maximum=10
+	// +kubebuilder:validation:Minimum=2
+	// +kubebuilder:validation:Maximum=5
 	// +kubebuilder:validation:Required
 	Replicas int32 `json:"replicas"`
 
 	// +kubebuilder:validation:Required
 	Image string `json:"image"`
+
+	// +kubebuilder:validation:Required
+	TargetArn string `json:"targetarn"`
+
+	// +kubebuilder:validation:Required
+	KMSArn string `json:"kmsarn"`
+
+	// +kubebuilder:validation:Required
+	CloudWatchArn string `json:"cloudwatcharn"`
 }
 
 // TopicTenStatus defines the observed state of TopicTen

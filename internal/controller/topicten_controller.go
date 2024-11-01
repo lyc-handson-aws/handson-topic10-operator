@@ -66,45 +66,18 @@ func (r *TopicTenReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Define the desired Deployment object
-	desiredDeployment := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      topicTen.Name,
-			Namespace: topicTen.Namespace,
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas: &topicTen.Spec.Replicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{"app": topicTen.Name},
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": topicTen.Name},
-				},
-				Spec: corev1.PodSpec{
-					Containers: []corev1.Container{
-						{
-							Name:  "topicten-container",
-							Image: topicTen.Spec.Image, // Use the specified image
-						},
-					},
-				},
-			},
-		},
-	}
-
-	// Set TopicTen instance as the owner of the Deployment
-	if err := controllerutil.SetControllerReference(topicTen, desiredDeployment, r.Scheme); err != nil {
-		return ctrl.Result{}, err
-	}
-
 	// Try to fetch the existing Deployment
 	foundDeployment := &appsv1.Deployment{}
 	err := r.Get(ctx, req.NamespacedName, foundDeployment)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			log.Info("Creating Deployment", "Namespace", req.Namespace, "Name", req.Name)
-			if err := r.Create(ctx, desiredDeployment); err != nil {
+			foundDeployment := r.createDeployment(topicTen)
+			// Set TopicTen instance as the owner of the Deployment
+			if err := controllerutil.SetControllerReference(topicTen, foundDeployment, r.Scheme); err != nil {
+				return ctrl.Result{}, err
+			}
+			if err := r.Create(ctx, foundDeployment); err != nil {
 				return ctrl.Result{}, err
 			}
 			return ctrl.Result{RequeueAfter: 2 * time.Minute}, nil
@@ -122,8 +95,58 @@ func (r *TopicTenReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{RequeueAfter: 2 * time.Minute}, nil
 	}
 
+	// Update status with current replica count
+	topicTen.Status.CurrentReplicas = *foundDeployment.Spec.Replicas
+	if err := r.Status().Update(ctx, topicTen); err != nil {
+		log.Error(err, "Failed to update MyPod status")
+		return ctrl.Result{}, err
+	}
+
 	log.Info("end of reconciliation - TopicTen")
 	return ctrl.Result{}, nil
+}
+
+func (r *TopicTenReconciler) createDeployment(topicTen *appv1alpha1.TopicTen) *appsv1.Deployment {
+	return &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      topicTen.Name,
+			Namespace: topicTen.Namespace,
+			Labels:    map[string]string{"app": topicTen.Name},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &topicTen.Spec.Replicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{"app": topicTen.Name},
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{"app": topicTen.Name},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:  "topicten-container",
+							Image: topicTen.Spec.Image,
+							Env: []corev1.EnvVar{
+								{
+									Name:  "TARGETARN",
+									Value: topicTen.Spec.TargetArn,
+								},
+								{
+									Name:  "KMSARN",
+									Value: topicTen.Spec.KMSArn,
+								},
+								{
+									Name:  "CLOUDWATCHARN",
+									Value: topicTen.Spec.CloudWatchArn,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }
 
 // SetupWithManager sets up the controller with the Manager.

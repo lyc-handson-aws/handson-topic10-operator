@@ -39,16 +39,25 @@ spec:
           spec:
             description: TopicTenSpec defines the desired state of TopicTen
             properties:
+              cloudwatcharn:
+                type: string
               image:
+                type: string
+              kmsarn:
                 type: string
               replicas:
                 format: int32
-                maximum: 10
-                minimum: 5
+                maximum: 5
+                minimum: 2
                 type: integer
+              targetarn:
+                type: string
             required:
+            - cloudwatcharn
             - image
+            - kmsarn
             - replicas
+            - targetarn
             type: object
           status:
             description: TopicTenStatus defines the observed state of TopicTen
