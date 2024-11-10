@@ -28,7 +28,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	appv1alpha1 "github.com/lyc-handson-aws/handson-topic10-operator/api/v1alpha1"
@@ -73,10 +72,6 @@ func (r *TopicTenReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if apierrors.IsNotFound(err) {
 			log.Info("Creating Deployment", "Namespace", req.Namespace, "Name", req.Name)
 			foundDeployment := r.createDeployment(topicTen)
-			// Set TopicTen instance as the owner of the Deployment
-			if err := controllerutil.SetControllerReference(topicTen, foundDeployment, r.Scheme); err != nil {
-				return ctrl.Result{}, err
-			}
 			if err := r.Create(ctx, foundDeployment); err != nil {
 				return ctrl.Result{}, err
 			}
@@ -140,6 +135,31 @@ func (r *TopicTenReconciler) createDeployment(topicTen *appv1alpha1.TopicTen) *a
 									Name:  "CLOUDWATCHARN",
 									Value: topicTen.Spec.CloudWatchArn,
 								},
+								{
+									Name: "MY_POD_NAME",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.name",
+										},
+									},
+								},
+								{
+									Name: "MY_POD_NAMESPACE",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "metadata.namespace",
+										},
+									},
+								},
+								{
+									Name: "MY_POD_IP",
+									ValueFrom: &corev1.EnvVarSource{
+										FieldRef: &corev1.ObjectFieldSelector{
+											FieldPath: "status.podIP",
+										},
+									},
+								},
+							  
 							},
 						},
 					},
@@ -153,5 +173,6 @@ func (r *TopicTenReconciler) createDeployment(topicTen *appv1alpha1.TopicTen) *a
 func (r *TopicTenReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&appv1alpha1.TopicTen{}).
+		Owns(&appsv1.Deployment{}).
 		Complete(r)
 }
