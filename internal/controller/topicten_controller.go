@@ -124,15 +124,15 @@ func (r *TopicTenReconciler) createDeployment(topicTen *appv1alpha1.TopicTen) *a
 							Image: topicTen.Spec.Image,
 							Env: []corev1.EnvVar{
 								{
-									Name:  "TARGETARN",
+									Name:  "STORAGE_ARN",
 									Value: topicTen.Spec.TargetArn,
 								},
 								{
-									Name:  "KMSARN",
+									Name:  "AWS_KMS_ARN",
 									Value: topicTen.Spec.KMSArn,
 								},
 								{
-									Name:  "CLOUDWATCHARN",
+									Name:  "AWS_LOG_GROUP_ARN",
 									Value: topicTen.Spec.CloudWatchArn,
 								},
 								{
