@@ -159,7 +159,34 @@ func (r *TopicTenReconciler) createDeployment(topicTen *appv1alpha1.TopicTen) *a
 										},
 									},
 								},
-							  
+								{
+									Name: "AWS_ACCESS_KEY_ID",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: "aws-credentials", // Reference the Secret by name
+											},
+											//Name: "aws-credentials", 
+											Key:  "AWS_ACCESS_KEY_ID",       // Key inside the secret
+										},
+									},
+								},
+								{
+									Name: "AWS_SECRET_ACCESS_KEY",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: "aws-credentials", 
+											},
+											//Name: "aws-credentials",
+											Key:  "AWS_SECRET_ACCESS_KEY",
+										},
+									},
+								},
+                                {
+                                    Name:  "AWS_REGION", // The name of the environment variable
+                                    Value: "eu-west-3",   // The value you want to set
+                                },
 							},
 						},
 					},

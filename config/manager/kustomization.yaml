@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: sneal2222/handson-topic10-operator
-  newTag: 0.0.2
+  newTag: 0.0.4

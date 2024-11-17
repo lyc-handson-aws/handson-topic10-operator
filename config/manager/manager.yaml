@@ -62,7 +62,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: sneal2222/handson-topic10-operator:0.0.2
+        image: sneal2222/handson-topic10-operator:0.0.4
         imagePullPolicy: Always
         name: manager
         securityContext:
